@@ -36,3 +36,89 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* ===== IskolarTunes theme ===== */
+:root,
+[data-bs-theme="light"] {
+    --it-maroon: #800000;
+    --it-maroon-dark: #5c0000;
+    --it-gold: #D4AF37;
+    --it-gold-dark: #b8932a;
+    --bs-primary: #800000;
+    --bs-primary-rgb: 128, 0, 0;
+    --bs-link-color: #800000;
+    --bs-link-color-rgb: 128, 0, 0;
+    --bs-link-hover-color: #5c0000;
+    --bs-link-hover-color-rgb: 92, 0, 0;
+    --bs-body-bg: #fffaf5;
+}
+
+[data-bs-theme="dark"] {
+    --bs-body-bg: #140a0b;
+    --bs-body-color: #f1e9e4;
+    --bs-primary: #D4AF37;
+    --bs-primary-rgb: 212, 175, 55;
+    --bs-link-color: #D4AF37;
+    --bs-link-color-rgb: 212, 175, 55;
+    --bs-link-hover-color: #e8c85f;
+    --bs-link-hover-color-rgb: 232, 200, 95;
+}
+
+/* Buttons */
+.btn-primary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--it-maroon);
+    --bs-btn-border-color: var(--it-maroon);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--it-maroon-dark);
+    --bs-btn-hover-border-color: var(--it-maroon-dark);
+    --bs-btn-active-bg: var(--it-maroon-dark);
+    --bs-btn-active-border-color: var(--it-maroon-dark);
+}
+
+[data-bs-theme="dark"] .btn-primary {
+    --bs-btn-color: #1a1000;
+    --bs-btn-bg: var(--it-gold);
+    --bs-btn-border-color: var(--it-gold);
+    --bs-btn-hover-color: #1a1000;
+    --bs-btn-hover-bg: var(--it-gold-dark);
+    --bs-btn-hover-border-color: var(--it-gold-dark);
+    --bs-btn-active-bg: var(--it-gold-dark);
+    --bs-btn-active-border-color: var(--it-gold-dark);
+}
+
+/* Navbar: maroon with a gold line, in both modes */
+.iskolar-navbar {
+    background-color: var(--it-maroon);
+    border-bottom: 3px solid var(--it-gold);
+}
+
+    .iskolar-navbar .navbar-brand,
+    .iskolar-navbar .nav-link {
+        color: #fff;
+    }
+
+    .iskolar-navbar .navbar-brand {
+        color: var(--it-gold);
+        font-weight: 700;
+    }
+
+    .iskolar-navbar .nav-link:hover,
+    .iskolar-navbar .nav-link:focus {
+        color: var(--it-gold);
+    }
+
+/* Toggle button */
+.theme-toggle {
+    border: 1px solid var(--it-gold);
+    color: var(--it-gold);
+    background: transparent;
+    border-radius: 999px;
+    padding: 0.25rem 0.8rem;
+    font-size: 0.875rem;
+}
+
+    .theme-toggle:hover {
+        background: var(--it-gold);
+        color: #1a1000;
+    }
