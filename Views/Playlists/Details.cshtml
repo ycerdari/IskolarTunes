@@ -1,0 +1,94 @@
+﻿@using System.Security.Claims
+@model Playlist
+@{
+    ViewData["Title"] = Model.Name;
+    var isOwner = Model.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier);
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<h1 class="h3">@Model.Name</h1>
+<p class="text-muted mb-1">
+    by @Model.Owner?.FullName &middot; @(Model.IsPublic ? "Public" : "Private")
+</p>
+<p>@Model.Description</p>
+
+@if (isOwner)
+{
+    <div class="mb-3">
+        <a class="btn btn-primary btn-sm" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <a class="btn btn-outline-danger btn-sm" asp-action="Delete" asp-route-id="@Model.Id">Delete</a>
+    </div>
+}
+
+@if (!Model.PlaylistTracks.Any())
+{
+    <p class="text-muted">This playlist has no tracks yet.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Artist</th>
+                    <th>Play</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var pt in Model.PlaylistTracks)
+                {
+                    <tr>
+                        <td>@pt.Position</td>
+                        <td><a asp-controller="Tracks" asp-action="Details" asp-route-id="@pt.TrackId">@pt.Track?.Title</a></td>
+                        <td>@pt.Track?.Uploader?.FullName</td>
+                        <td><audio controls preload="none" src="@pt.Track?.AudioFilePath" style="max-width:220px"></audio></td>
+                        <td>
+                            @if (isOwner)
+                            {
+                                <form asp-action="RemoveTrack" method="post" class="d-inline">
+                                    <input type="hidden" name="playlistId" value="@Model.Id" />
+                                    <input type="hidden" name="trackId" value="@pt.TrackId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Remove</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (isOwner)
+{
+    var available = ViewData["AvailableTracks"] as SelectList;
+    <hr />
+    <h2 class="h5">Add a track</h2>
+    @if (available == null || !available.Any())
+    {
+        <p class="text-muted">Every track is already in this playlist, or there are no tracks yet.</p>
+    }
+    else
+    {
+        <form asp-action="AddTrack" method="post" class="row g-2">
+            <input type="hidden" name="playlistId" value="@Model.Id" />
+            <div class="col-sm-8 col-md-6">
+                <select name="trackId" class="form-select" asp-items="available"></select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Add to playlist</button>
+            </div>
+        </form>
+    }
+}
+
+<div class="mt-4">
+    <a asp-action="Index">Back to playlists</a>
+</div>

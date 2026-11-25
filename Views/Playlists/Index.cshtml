@@ -1,0 +1,49 @@
+﻿@using System.Security.Claims
+@model IEnumerable<Playlist>
+@{
+    ViewData["Title"] = "Playlists";
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h1 class="h3 mb-0">Playlists</h1>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <a class="btn btn-primary" asp-action="Create">New playlist</a>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <p class="text-muted">No playlists yet.</p>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var item in Model)
+        {
+            <div class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="fw-semibold">@item.Name</a>
+                    <span class="badge text-bg-secondary ms-2">@(item.IsPublic ? "Public" : "Private")</span>
+                    <div class="small text-muted">
+                        by @item.Owner?.FullName &middot; @item.PlaylistTracks.Count track(s)
+                    </div>
+                </div>
+                @if (item.OwnerId == currentUserId)
+                {
+                    <div class="text-nowrap">
+                        <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                        <span> | </span>
+                        <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

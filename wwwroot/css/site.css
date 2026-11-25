@@ -122,3 +122,19 @@ body {
         background: var(--it-gold);
         color: #1a1000;
     }
+
+
+.form-check-input:checked {
+    background-color: var(--it-maroon);
+    border-color: var(--it-maroon);
+}
+
+[data-bs-theme="dark"] .form-check-input:checked {
+    background-color: var(--it-gold);
+    border-color: var(--it-gold);
+}
+
+.form-check-input:focus {
+    border-color: var(--it-gold);
+    box-shadow: 0 0 0 0.25rem rgba(212, 175, 55, 0.25);
+}
