@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IskolarTunes.Controllers;
 
+[Authorize]
 public class TracksController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -59,20 +60,20 @@ public class TracksController : Controller
     }
 
     // CREATE
-    [Authorize]
     public IActionResult Create() => View(new TrackFormViewModel());
 
-    [Authorize]
     [HttpPost, ValidateAntiForgeryToken]
+    [RequestSizeLimit(30_000_000)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 30_000_000)]
     public async Task<IActionResult> Create(TrackFormViewModel vm)
     {
         if (vm.AudioFile == null)
             ModelState.AddModelError(nameof(vm.AudioFile), "Please choose an audio file.");
         else
-            ValidateFile(vm.AudioFile, nameof(vm.AudioFile), AudioExtensions, MaxAudioBytes, "audio");
+            await ValidateFileAsync(vm.AudioFile, nameof(vm.AudioFile), AudioExtensions, MaxAudioBytes, "audio");
 
         if (vm.CoverImage != null)
-            ValidateFile(vm.CoverImage, nameof(vm.CoverImage), ImageExtensions, MaxImageBytes, "image");
+            await ValidateFileAsync(vm.CoverImage, nameof(vm.CoverImage), ImageExtensions, MaxImageBytes, "image");
 
         if (!ModelState.IsValid) return View(vm);
 
@@ -96,7 +97,6 @@ public class TracksController : Controller
     }
 
     // UPDATE
-    [Authorize]
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null) return NotFound();
@@ -116,8 +116,9 @@ public class TracksController : Controller
         });
     }
 
-    [Authorize]
     [HttpPost, ValidateAntiForgeryToken]
+    [RequestSizeLimit(30_000_000)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 30_000_000)]
     public async Task<IActionResult> Edit(int id, TrackFormViewModel vm)
     {
         if (id != vm.Id) return NotFound();
@@ -127,9 +128,9 @@ public class TracksController : Controller
         if (!IsOwner(track)) return Forbid();
 
         if (vm.AudioFile != null)
-            ValidateFile(vm.AudioFile, nameof(vm.AudioFile), AudioExtensions, MaxAudioBytes, "audio");
+            await ValidateFileAsync(vm.AudioFile, nameof(vm.AudioFile), AudioExtensions, MaxAudioBytes, "audio");
         if (vm.CoverImage != null)
-            ValidateFile(vm.CoverImage, nameof(vm.CoverImage), ImageExtensions, MaxImageBytes, "image");
+            await ValidateFileAsync(vm.CoverImage, nameof(vm.CoverImage), ImageExtensions, MaxImageBytes, "image");
 
         if (!ModelState.IsValid)
         {
@@ -144,13 +145,13 @@ public class TracksController : Controller
 
         if (vm.AudioFile != null)
         {
-            DeleteFile(track.AudioFilePath);
+            DeleteFile(track.AudioFilePath, "audio");
             track.AudioFilePath = await SaveFileAsync(vm.AudioFile, "audio");
         }
 
         if (vm.CoverImage != null)
         {
-            DeleteFile(track.CoverImagePath);
+            DeleteFile(track.CoverImagePath, "covers");
             track.CoverImagePath = await SaveFileAsync(vm.CoverImage, "covers");
         }
 
@@ -161,7 +162,6 @@ public class TracksController : Controller
     }
 
     // DELETE
-    [Authorize]
     public async Task<IActionResult> Delete(int? id)
     {
         if (id == null) return NotFound();
@@ -176,7 +176,6 @@ public class TracksController : Controller
         return View(track);
     }
 
-    [Authorize]
     [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
@@ -184,8 +183,8 @@ public class TracksController : Controller
         if (track == null) return RedirectToAction(nameof(Index));
         if (!IsOwner(track)) return Forbid();
 
-        DeleteFile(track.AudioFilePath);
-        DeleteFile(track.CoverImagePath);
+        DeleteFile(track.AudioFilePath, "audio");
+        DeleteFile(track.CoverImagePath, "covers");
 
         _context.Tracks.Remove(track);
         await _context.SaveChangesAsync();
@@ -197,20 +196,63 @@ public class TracksController : Controller
     // Helpers
     private bool IsOwner(Track track) => track.UploaderId == _userManager.GetUserId(User);
 
-    private void ValidateFile(IFormFile file, string field, string[] allowed, long maxBytes, string kind)
+    private async Task ValidateFileAsync(IFormFile file, string field, string[] allowed, long maxBytes, string kind)
     {
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+
         if (!allowed.Contains(ext))
+        {
             ModelState.AddModelError(field, $"Allowed {kind} types: {string.Join(", ", allowed)}");
-        else if (file.Length == 0)
+            return;
+        }
+        if (file.Length == 0)
+        {
             ModelState.AddModelError(field, "The file is empty.");
-        else if (file.Length > maxBytes)
+            return;
+        }
+        if (file.Length > maxBytes)
+        {
             ModelState.AddModelError(field, $"The {kind} file must be {maxBytes / (1024 * 1024)} MB or smaller.");
+            return;
+        }
+
+        var header = new byte[12];
+        int read;
+        await using (var stream = file.OpenReadStream())
+        {
+            read = await stream.ReadAsync(header, 0, header.Length);
+        }
+
+        if (!HasValidSignature(ext, header, read))
+            ModelState.AddModelError(field, $"This file does not look like a real {kind} file.");
     }
 
+    private static bool HasValidSignature(string ext, byte[] h, int len)
+    {
+        if (len < 4) return false;
+
+        bool Ascii(int offset, string text) =>
+            len >= offset + text.Length &&
+            text.Select((c, i) => h[offset + i] == (byte)c).All(x => x);
+
+        return ext switch
+        {
+            ".mp3" => Ascii(0, "ID3") || (h[0] == 0xFF && (h[1] & 0xE0) == 0xE0),
+            ".wav" => Ascii(0, "RIFF") && Ascii(8, "WAVE"),
+            ".ogg" => Ascii(0, "OggS"),
+            ".m4a" => Ascii(4, "ftyp"),
+            ".jpg" or ".jpeg" => h[0] == 0xFF && h[1] == 0xD8 && h[2] == 0xFF,
+            ".png" => h[0] == 0x89 && h[1] == 0x50 && h[2] == 0x4E && h[3] == 0x47,
+            ".webp" => Ascii(0, "RIFF") && Ascii(8, "WEBP"),
+            _ => false
+        };
+    }
+
+    // Files are saved OUTSIDE wwwroot, so they can't be opened by URL directly.
+    // They are only served by MediaController, which requires login.
     private async Task<string> SaveFileAsync(IFormFile file, string folder)
     {
-        var folderPath = Path.Combine(_env.WebRootPath, "uploads", folder);
+        var folderPath = Path.Combine(_env.ContentRootPath, "PrivateUploads", folder);
         Directory.CreateDirectory(folderPath);
 
         var fileName = $"{Guid.NewGuid():N}{Path.GetExtension(file.FileName).ToLowerInvariant()}";
@@ -219,15 +261,15 @@ public class TracksController : Controller
         using var stream = new FileStream(fullPath, FileMode.Create);
         await file.CopyToAsync(stream);
 
-        return $"/uploads/{folder}/{fileName}";
+        return fileName;
     }
 
-    private void DeleteFile(string? webPath)
+    private void DeleteFile(string? fileName, string folder)
     {
-        if (string.IsNullOrEmpty(webPath)) return;
+        if (string.IsNullOrEmpty(fileName)) return;
 
-        var fullPath = Path.Combine(_env.WebRootPath,
-            webPath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+        var safeName = Path.GetFileName(fileName);
+        var fullPath = Path.Combine(_env.ContentRootPath, "PrivateUploads", folder, safeName);
 
         if (System.IO.File.Exists(fullPath))
             System.IO.File.Delete(fullPath);

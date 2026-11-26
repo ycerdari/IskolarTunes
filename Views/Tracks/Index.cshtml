@@ -51,14 +51,14 @@ else
                         <td style="width:64px">
                             @if (!string.IsNullOrEmpty(item.CoverImagePath))
                             {
-                                <img src="@item.CoverImagePath" alt="Cover" width="56" height="56" style="object-fit:cover;border-radius:6px" />
+                                <img src="@Url.Action("Cover", "Media", new { id = item.Id })" alt="Cover" width="56" height="56" style="object-fit:cover;border-radius:6px" />
                             }
                         </td>
                         <td>@item.Title</td>
                         <td>@item.Uploader?.FullName</td>
                         <td>@item.Genre</td>
                         <td>@item.UploadedAt.ToString("MMM d, yyyy")</td>
-                        <td><audio controls preload="none" src="@item.AudioFilePath" style="max-width:220px"></audio></td>
+                        <td><audio controls preload="none" src="@Url.Action("Audio", "Media", new { id = item.Id })" style="max-width:220px"></audio></td>
                         <td class="text-nowrap">
                             <a asp-action="Details" asp-route-id="@item.Id">Details</a>
                             @if (item.UploaderId == currentUserId)

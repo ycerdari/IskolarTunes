@@ -31,7 +31,7 @@
                 <label asp-for="AudioFile" class="form-label">Replace audio file (optional)</label>
                 @if (!string.IsNullOrEmpty(Model.ExistingAudioPath))
                 {
-                    <audio controls src="@Model.ExistingAudioPath" class="w-100 mb-2"></audio>
+                    <audio controls src="@Url.Action("Audio", "Media", new { id = Model.Id })" class="w-100 mb-2"></audio>
                 }
                 <input asp-for="AudioFile" type="file" class="form-control" accept=".mp3,.wav,.ogg,.m4a" />
                 <span asp-validation-for="AudioFile" class="text-danger"></span>
@@ -40,7 +40,7 @@
                 <label asp-for="CoverImage" class="form-label">Replace cover image (optional)</label>
                 @if (!string.IsNullOrEmpty(Model.ExistingCoverPath))
                 {
-                    <div class="mb-2"><img src="@Model.ExistingCoverPath" alt="Cover" width="96" style="border-radius:6px" /></div>
+                    <div class="mb-2"><img src="@Url.Action("Cover", "Media", new { id = Model.Id })" alt="Cover" width="96" style="border-radius:6px" /></div>
                 }
                 <input asp-for="CoverImage" type="file" class="form-control" accept=".jpg,.jpeg,.png,.webp" />
                 <span asp-validation-for="CoverImage" class="text-danger"></span>

@@ -21,5 +21,12 @@ namespace IskolarTunes.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+        [Route("Home/Status/{code:int}")]
+        public IActionResult Status(int code)
+        {
+            ViewData["Code"] = code;
+            return View();
+        }
     }
 }

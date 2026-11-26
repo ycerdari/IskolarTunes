@@ -48,7 +48,7 @@ else
                         <td>@pt.Position</td>
                         <td><a asp-controller="Tracks" asp-action="Details" asp-route-id="@pt.TrackId">@pt.Track?.Title</a></td>
                         <td>@pt.Track?.Uploader?.FullName</td>
-                        <td><audio controls preload="none" src="@pt.Track?.AudioFilePath" style="max-width:220px"></audio></td>
+                        <td><audio controls preload="none" src="@Url.Action("Audio", "Media", new { id = pt.TrackId })" style="max-width:220px"></audio></td>
                         <td>
                             @if (isOwner)
                             {

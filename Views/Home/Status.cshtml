@@ -1,0 +1,17 @@
+﻿@{
+    var code = ViewData["Code"] as int? ?? 0;
+    ViewData["Title"] = code == 404 ? "Page not found" : "Something went wrong";
+    var message = code switch
+    {
+        404 => "We couldn't find that page.",
+        403 => "You don't have access to that.",
+        429 => "Too many requests. Please wait a moment.",
+        _ => "Something went wrong on our side."
+    };
+}
+
+<div class="text-center py-5">
+    <h1 class="display-4">@(code == 0 ? "Oops" : code.ToString())</h1>
+    <p class="lead">@message</p>
+    <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Back to home</a>
+</div>

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IskolarTunes.Controllers;
 
+[Authorize]
 public class PlaylistsController : Controller
 {
     private readonly ApplicationDbContext _context;

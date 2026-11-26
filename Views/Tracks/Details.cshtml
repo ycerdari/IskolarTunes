@@ -14,7 +14,7 @@
     <div class="col-md-4">
         @if (!string.IsNullOrEmpty(Model.CoverImagePath))
         {
-            <img src="@Model.CoverImagePath" alt="Cover" class="img-fluid rounded" />
+            <img src="@Url.Action("Cover", "Media", new { id = Model.Id })" alt="Cover" class="img-fluid rounded" />
         }
     </div>
     <div class="col-md-8">
@@ -23,7 +23,7 @@
         <p class="mb-1">Genre: @(Model.Genre ?? "Not set")</p>
         <p class="mb-3">Uploaded: @Model.UploadedAt.ToString("MMM d, yyyy")</p>
         <p>@Model.Description</p>
-        <audio controls src="@Model.AudioFilePath" class="w-100 my-3"></audio>
+        <audio controls src="@Url.Action("Audio", "Media", new { id = Model.Id })" class="w-100 my-3"></audio>
 
         <div>
             @if (isOwner)
