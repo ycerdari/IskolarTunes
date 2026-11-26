@@ -362,4 +362,18 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
+# ===== Private data: never commit =====
 **/wwwroot/uploads/
+PrivateUploads/
+*.mp3
+*.wav
+*.ogg
+*.m4a
+secrets.json
+.env
+*.pfx
+*.key
+*.mdf
+*.ldf
+*.bak
+appsettings.*.local.json
