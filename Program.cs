@@ -49,6 +49,8 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
 });
 
+builder.Services.AddScoped<UserSettingsService>();
+
 // Slows down automated login/registration attacks (per IP address)
 builder.Services.AddRateLimiter(options =>
 {
