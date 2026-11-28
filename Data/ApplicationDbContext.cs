@@ -16,10 +16,30 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<PlaylistTrack> PlaylistTracks => Set<PlaylistTrack>();
     public DbSet<TrackLike> TrackLikes { get; set; }
     public DbSet<TrackPlay> TrackPlays { get; set; }
+    public DbSet<UserSetting> UserSettings => Set<UserSetting>();
+    public DbSet<UserSocialLink> UserSocialLinks => Set<UserSocialLink>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<ApplicationUser>()
+            .Property(u => u.PublicFields)
+            .HasDefaultValue(ProfileField.FullName | ProfileField.College);
+
+        builder.Entity<UserSetting>(e =>
+        {
+            e.HasIndex(s => new { s.UserId, s.Key }).IsUnique();
+            e.HasOne(s => s.User).WithMany().HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<UserSocialLink>(e =>
+        {
+            e.Property(l => l.Platform).HasConversion<string>().HasMaxLength(20);
+            e.HasOne(l => l.User).WithMany(u => u.SocialLinks).HasForeignKey(l => l.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         // One like per user per track
         builder.Entity<TrackLike>()
