@@ -1,4 +1,9 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var ctrl = (ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty).ToLowerInvariant();
+    string Active(string name) => ctrl == name ? " active" : string.Empty;
+    string? Current(string name) => ctrl == name ? "page" : null;
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -20,51 +25,56 @@
             document.documentElement.setAttribute('data-bs-theme', theme);
         })();
     </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/IskolarTunes.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm border-bottom mb-3 iskolar-navbar" data-bs-theme="dark">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">IskolarTunes</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Tracks" asp-action="Index">Tracks</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Playlists" asp-action="Index">Playlists</a>
-                        </li>
-                    </ul>
+    <header class="it-header">
+        <div class="it-header-inner">
+            <a class="it-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                <span class="it-logo" aria-hidden="true">I</span>
+                <span>IskolarTunes</span>
+            </a>
+
+            <button class="it-icon-btn it-menu-btn d-lg-none" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#itNav"
+                    aria-controls="itNav" aria-expanded="false" aria-label="Toggle navigation">
+                <svg class="it-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"></path></svg>
+            </button>
+
+            <div class="it-header-collapse collapse d-lg-flex" id="itNav">
+                <nav class="it-tabs" aria-label="Main">
+                    <a class="it-tab@(Active("home"))" aria-current="@Current("home")" asp-area="" asp-controller="Home" asp-action="Index">Discover</a>
+                    <a class="it-tab@(Active("tracks"))" aria-current="@Current("tracks")" asp-area="" asp-controller="Tracks" asp-action="Index">Tracks</a>
+                    <a class="it-tab@(Active("playlists"))" aria-current="@Current("playlists")" asp-area="" asp-controller="Playlists" asp-action="Index">Library</a>
+                </nav>
+
+                <form class="it-search ms-lg-auto" role="search" asp-area="" asp-controller="Tracks" asp-action="Index" method="get">
+                    <svg class="it-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16M21 21l-4.3-4.3"></path></svg>
+                    <input type="search" name="searchString" aria-label="Search" placeholder="Search songs, artists, colleges" />
+                </form>
+
+                <div class="it-actions">
+                    <a class="it-pill it-pill-ghost" asp-area="" asp-controller="Tracks" asp-action="Index">Browse catalogues</a>
+                    <button type="button" id="themeToggle" class="theme-toggle" aria-label="Toggle dark or light mode">🌙 Dark</button>
                     <partial name="_LoginPartial" />
-                    <button type="button" id="themeToggle" class="theme-toggle ms-sm-2 mt-2 mt-sm-0" aria-label="Toggle dark or light mode">🌙 Dark</button>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - IskolarTunes - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
+    </header>
+
+    <main role="main" class="it-main">
+        @RenderBody()
+    </main>
+
+    <footer class="it-footer">
+        &copy; 2026 - IskolarTunes - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

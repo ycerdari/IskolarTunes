@@ -3,25 +3,37 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 
-<ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {
-    <li class="nav-item">
-        <a  class="nav-link" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity?.Name!</a>
-    </li>
-    <li class="nav-item">
-        <form  class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button  type="submit" class="nav-link btn btn-link">Logout</button>
-        </form>
-    </li>
+    var appUser = await UserManager.GetUserAsync(User);
+    string display = appUser?.FullName ?? string.Empty;
+    if (string.IsNullOrWhiteSpace(display))
+    {
+        display = User.Identity?.Name ?? "User";
+    }
+    var trimmed = display.Trim();
+    var initial = trimmed.Length > 0 ? char.ToUpperInvariant(trimmed[0]).ToString() : "U";
+
+    <a class="it-icon-btn" asp-area="Identity" asp-page="/Account/Manage/Index" aria-label="Account settings" title="Settings">
+        <svg class="it-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    </a>
+    <div class="dropdown">
+        <button class="it-avatar" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Profile menu">@initial</button>
+        <ul class="dropdown-menu dropdown-menu-end it-menu">
+            <li class="it-menu-head">@display</li>
+            <li><a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index">Account</a></li>
+            <li><a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/TwoFactorAuthentication">Two-factor authentication</a></li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                    <button type="submit" class="dropdown-item">Log out</button>
+                </form>
+            </li>
+        </ul>
+    </div>
 }
 else
 {
-    <li class="nav-item">
-        <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Register</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Login</a>
-    </li>
+    <a class="it-pill it-pill-ghost" asp-area="Identity" asp-page="/Account/Login">Log in</a>
+    <a class="it-pill" asp-area="Identity" asp-page="/Account/Register">Sign up</a>
 }
-</ul>

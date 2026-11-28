@@ -1,8 +1,19 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="it-hero" aria-labelledby="heroTitle">
+    <div class="it-hero-copy">
+        <div class="it-kicker">ISKOLARTUNES · PUP MANILA</div>
+        <h1 id="heroTitle">Artista ng Bayan</h1>
+        <p class="it-hero-sub">Original music from PUP student artists.</p>
+        <div class="it-hero-actions">
+            <a class="it-pill" asp-controller="Tracks" asp-action="Index">
+                <svg class="it-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z" fill="currentColor"></path></svg>
+                Browse tracks
+            </a>
+            <a class="it-pill it-pill-ghost" asp-controller="Playlists" asp-action="Index">View playlists</a>
+        </div>
+    </div>
+    <div class="it-vinyl" aria-hidden="true"></div>
+</section>
