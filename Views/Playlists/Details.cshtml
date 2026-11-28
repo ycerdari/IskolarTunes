@@ -3,7 +3,12 @@
 @{
     ViewData["Title"] = Model.Name;
     var isOwner = Model.OwnerId == User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var likeCounts = ViewData["LikeCounts"] as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var likedByMe = ViewData["LikedByMe"] as HashSet<int> ?? new HashSet<int>();
 }
+
+<link rel="stylesheet" href="~/css/likes.css" asp-append-version="true" />
+@Html.AntiForgeryToken()
 
 @if (TempData["Success"] != null)
 {
@@ -37,6 +42,7 @@ else
                     <th>#</th>
                     <th>Title</th>
                     <th>Artist</th>
+                    <th>Likes</th>
                     <th>Play</th>
                     <th></th>
                 </tr>
@@ -48,7 +54,17 @@ else
                         <td>@pt.Position</td>
                         <td><a asp-controller="Tracks" asp-action="Details" asp-route-id="@pt.TrackId">@pt.Track?.Title</a></td>
                         <td>@pt.Track?.Uploader?.FullName</td>
-                        <td><audio controls preload="none" src="@Url.Action("Audio", "Media", new { id = pt.TrackId })" style="max-width:220px"></audio></td>
+                        <td>
+                            <div class="tt">
+                                <partial name="~/Views/Tracks/_LikeButton.cshtml" model="@(new IskolarTunes.ViewModels.LikeButtonViewModel
+                                         {
+                                             TrackId = pt.TrackId,
+                                             Liked = likedByMe.Contains(pt.TrackId),
+                                             Count = likeCounts.TryGetValue(pt.TrackId, out var c) ? c : 0
+                                         })" />
+                            </div>
+                        </td>
+                        <td><audio controls preload="none" data-track-id="@pt.TrackId" src="@Url.Action("Audio", "Media", new { id = pt.TrackId })" style="max-width:220px"></audio></td>
                         <td>
                             @if (isOwner)
                             {
@@ -92,3 +108,21 @@ else
 <div class="mt-4">
     <a asp-action="Index">Back to playlists</a>
 </div>
+
+@section Scripts {
+    <script src="~/js/likes.js" asp-append-version="true"></script>
+    <script>
+        (() => {
+            // one play counted per track per page visit; "play" doesn't bubble, so listen in capture mode
+            const counted = new Set();
+            document.addEventListener('play', (e) => {
+                if (!(e.target instanceof HTMLAudioElement)) return;
+                const id = e.target.dataset.trackId;
+                if (id && !counted.has(id)) {
+                    counted.add(id);
+                    recordPlay(id);
+                }
+            }, true);
+        })();
+    </script>
+}
