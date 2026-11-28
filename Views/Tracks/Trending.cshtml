@@ -1,0 +1,36 @@
+﻿@model List<IskolarTunes.ViewModels.TrendingTrackViewModel>
+@{
+    ViewData["Title"] = "Trending";
+}
+
+<link rel="stylesheet" href="~/css/likes.css" asp-append-version="true" />
+@Html.AntiForgeryToken()
+
+<div class="tt">
+    <div class="tt-card">
+        <h1 class="tt-title">Trending this week</h1>
+        <p class="tt-muted">Most played tracks in the last 7 days</p>
+
+        @if (!Model.Any())
+        {
+            <p class="tt-muted">Nothing is trending yet. Play some tracks first.</p>
+        }
+
+        @for (var i = 0; i < Model.Count; i++)
+        {
+            var t = Model[i];
+            <div class="tt-row">
+                <div class="tt-rank">@(i + 1)</div>
+                <div class="tt-info">
+                    <strong>@t.Title</strong>
+                    <span class="tt-muted">@t.ArtistName · @t.WeeklyPlays plays</span>
+                </div>
+                <partial name="_LikeButton" model="@(new IskolarTunes.ViewModels.LikeButtonViewModel { TrackId = t.Id, Liked = t.LikedByMe, Count = t.LikeCount })" />
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/likes.js" asp-append-version="true"></script>
+}

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace IskolarTunes.Controllers;
 
@@ -27,11 +28,82 @@ public class TracksController : Controller
         _userManager = userManager;
         _env = env;
     }
+    [HttpGet]
+    public async Task<IActionResult> Trending()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var since = DateTime.UtcNow.AddDays(-7);
+
+        var items = await _context.Tracks
+            .Select(t => new TrendingTrackViewModel
+            {
+                Id = t.Id,
+                Title = t.Title,
+                ArtistName = t.Uploader!.FullName,
+                WeeklyPlays = t.Plays.Count(p => p.PlayedAt >= since),
+                LikeCount = t.Likes.Count(),
+                LikedByMe = t.Likes.Any(l => l.UserId == userId)
+            })
+            .Where(x => x.WeeklyPlays > 0)
+            .OrderByDescending(x => x.WeeklyPlays)
+            .ThenByDescending(x => x.LikeCount)
+            .Take(20)
+            .ToListAsync();
+
+        return View(items);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleLike(int id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Challenge();
+        if (!await _context.Tracks.AnyAsync(t => t.Id == id)) return NotFound();
+
+        var like = await _context.TrackLikes
+            .FirstOrDefaultAsync(l => l.TrackId == id && l.UserId == userId);
+
+        if (like == null)
+            _context.TrackLikes.Add(new TrackLike { TrackId = id, UserId = userId });
+        else
+            _context.TrackLikes.Remove(like);
+
+        try { await _context.SaveChangesAsync(); }
+        catch (DbUpdateException) { /* double-click hit the unique index; state is re-read below */ }
+
+        var liked = await _context.TrackLikes.AnyAsync(l => l.TrackId == id && l.UserId == userId);
+        var count = await _context.TrackLikes.CountAsync(l => l.TrackId == id);
+        return Json(new { liked, count });
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> RecordPlay(int id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Challenge();
+        if (!await _context.Tracks.AnyAsync(t => t.Id == id)) return NotFound();
+
+        // ignore repeat plays of the same track by the same user within 30 seconds
+        var recent = DateTime.UtcNow.AddSeconds(-30);
+        if (await _context.TrackPlays.AnyAsync(p => p.TrackId == id && p.UserId == userId && p.PlayedAt > recent))
+            return NoContent();
+
+        _context.TrackPlays.Add(new TrackPlay { TrackId = id, UserId = userId });
+        await _context.SaveChangesAsync();
+
+        await _context.Tracks.Where(t => t.Id == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.PlayCount, t => t.PlayCount + 1));
+
+        return NoContent();
+    }
 
     // READ (list + search)
     public async Task<IActionResult> Index(string? search)
     {
-        var query = _context.Tracks.Include(t => t.Uploader).AsQueryable();
+        var query = _context.Tracks
+            .Include(t => t.Uploader)
+            .Include(t => t.Likes)
+            .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
         {
@@ -42,6 +114,7 @@ public class TracksController : Controller
         }
 
         ViewData["Search"] = search;
+        ViewData["UserId"] = _userManager.GetUserId(User);
         var tracks = await query.OrderByDescending(t => t.UploadedAt).ToListAsync();
         return View(tracks);
     }
@@ -53,9 +126,11 @@ public class TracksController : Controller
 
         var track = await _context.Tracks
             .Include(t => t.Uploader)
+            .Include(t => t.Likes)
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (track == null) return NotFound();
+        ViewData["UserId"] = _userManager.GetUserId(User);
         return View(track);
     }
 

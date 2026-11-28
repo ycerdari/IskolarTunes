@@ -52,6 +52,19 @@ public class PlaylistsController : Controller
         var userId = _userManager.GetUserId(User);
         if (!playlist.IsPublic && playlist.OwnerId != userId) return NotFound();
 
+        var trackIds = playlist.PlaylistTracks.Select(pt => pt.TrackId).ToList();
+
+        ViewData["LikeCounts"] = await _context.TrackLikes
+            .Where(l => trackIds.Contains(l.TrackId))
+            .GroupBy(l => l.TrackId)
+            .Select(g => new { TrackId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.TrackId, x => x.Count);
+
+        ViewData["LikedByMe"] = (await _context.TrackLikes
+            .Where(l => trackIds.Contains(l.TrackId) && l.UserId == userId)
+            .Select(l => l.TrackId)
+            .ToListAsync()).ToHashSet();
+
         if (playlist.OwnerId == userId)
         {
             var existingIds = playlist.PlaylistTracks.Select(pt => pt.TrackId).ToList();
