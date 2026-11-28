@@ -10,8 +10,9 @@
     };
 }
 
-<div class="text-center py-5">
-    <h1 class="display-4">@(code == 0 ? "Oops" : code.ToString())</h1>
-    <p class="lead">@message</p>
-    <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Back to home</a>
+<div class="it-error it-card">
+    <div class="it-kicker">@(code == 0 ? "ERROR" : "ERROR " + code)</div>
+    <div class="it-error-code">@(code == 0 ? "Oops" : code.ToString())</div>
+    <p>@message</p>
+    <a class="it-pill" asp-controller="Home" asp-action="Index">Back to home</a>
 </div>

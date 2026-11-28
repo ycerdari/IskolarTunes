@@ -1,19 +1,203 @@
-﻿@{
+﻿@using IskolarTunes.ViewModels
+@model HomeViewModel
+@{
     ViewData["Title"] = "Home";
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var spot = Model.Spotlight;
+    var queue = Model.Queue;
+    var spotMeta = spot == null ? "" : spot.ArtistName + (string.IsNullOrWhiteSpace(spot.Genre) ? "" : " · " + spot.Genre);
+    string Grad(int id) => "it-g" + (id % 5);
+    string Plural(int n, string one, string many) => n == 1 ? one : many;
 }
 
-<section class="it-hero" aria-labelledby="heroTitle">
-    <div class="it-hero-copy">
-        <div class="it-kicker">ISKOLARTUNES · PUP MANILA</div>
-        <h1 id="heroTitle">Artista ng Bayan</h1>
-        <p class="it-hero-sub">Original music from PUP student artists.</p>
-        <div class="it-hero-actions">
-            <a class="it-pill" asp-controller="Tracks" asp-action="Index">
-                <svg class="it-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z" fill="currentColor"></path></svg>
-                Browse tracks
-            </a>
-            <a class="it-pill it-pill-ghost" asp-controller="Playlists" asp-action="Index">View playlists</a>
+<div class="it-stack">
+    <section class="it-hero" aria-labelledby="heroTitle">
+        <div class="it-hero-copy">
+            @if (spot != null)
+            {
+                <div class="it-kicker">ISKOLARTUNES SPOTLIGHT</div>
+                <h1 id="heroTitle">@spot.Title</h1>
+                <p class="it-hero-sub">@spotMeta</p>
+                <div class="it-hero-actions">
+                    <button type="button" class="it-pill" data-play="@spot.Id">
+                        <svg class="it-icon it-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z"></path></svg>
+                        Play
+                    </button>
+                    <a class="it-pill it-pill-ghost" asp-controller="Playlists" asp-action="Index">View playlists</a>
+                </div>
+            }
+            else
+            {
+                <div class="it-kicker">ISKOLARTUNES · PUP MANILA</div>
+                <h1 id="heroTitle">Artista ng Bayan</h1>
+                <p class="it-hero-sub">Original music from PUP student artists.</p>
+                <div class="it-hero-actions">
+                    @if (signedIn)
+                    {
+                        <a class="it-pill" asp-controller="Tracks" asp-action="Create">Upload a track</a>
+                        <a class="it-pill it-pill-ghost" asp-controller="Playlists" asp-action="Index">View playlists</a>
+                    }
+                    else
+                    {
+                        <a class="it-pill" asp-area="Identity" asp-page="/Account/Login">Log in</a>
+                        <a class="it-pill it-pill-ghost" asp-area="Identity" asp-page="/Account/Register">Sign up</a>
+                    }
+                </div>
+            }
         </div>
-    </div>
-    <div class="it-vinyl" aria-hidden="true"></div>
-</section>
+        <div class="it-vinyl" aria-hidden="true"></div>
+    </section>
+
+    @if (queue.Count > 0 && spot != null)
+    {
+        <section class="it-card" aria-label="Now playing">
+            <div class="it-led">
+                <div class="it-led-main" id="itTicker">PAUSED ► @spot.Title</div>
+                <div class="it-led-sub" id="itTickerSub">@spotMeta</div>
+            </div>
+
+            <div class="it-stops" id="itStops"></div>
+
+            <div class="it-controls">
+                <button type="button" class="it-ctl" data-action="shuffle" aria-pressed="false" aria-label="Shuffle">
+                    <span class="it-ctl-c"><svg class="it-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"></path></svg></span>
+                    Shuffle
+                </button>
+                <button type="button" class="it-ctl" data-action="prev" aria-label="Previous track">
+                    <span class="it-ctl-c"><svg class="it-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 20 9 12l10-8zM5 19V5"></path></svg></span>
+                    Previous
+                </button>
+                <button type="button" class="it-ctl it-ctl-main" data-action="toggle" aria-label="Play">
+                    <span class="it-ctl-c">
+                        <svg class="it-icon it-fill it-ico-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z"></path></svg>
+                        <svg class="it-icon it-fill it-ico-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"></path></svg>
+                    </span>
+                    <span data-label="toggle">Play</span>
+                </button>
+                <button type="button" class="it-ctl" data-action="next" aria-label="Next track">
+                    <span class="it-ctl-c"><svg class="it-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4l10 8-10 8zM19 5v14"></path></svg></span>
+                    Next
+                </button>
+                <button type="button" class="it-ctl it-fav" data-action="like" aria-pressed="false" aria-label="Add to favorites">
+                    <span class="it-ctl-c"><svg class="it-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8"></path></svg></span>
+                    Favorite
+                </button>
+            </div>
+        </section>
+
+        @if (Model.Trending.Count > 0)
+        {
+            <section aria-labelledby="trendingTitle">
+                <div class="it-section-head">
+                    <h2 class="it-h2" id="trendingTitle">Trending this week</h2>
+                    <a class="it-link" asp-controller="Tracks" asp-action="Trending">See all</a>
+                </div>
+                <div class="it-card it-list">
+                    @for (var i = 0; i < Model.Trending.Count; i++)
+                    {
+                        var t = Model.Trending[i];
+                        <button type="button" class="it-row" data-play="@t.Id">
+                            <span class="it-rank">@(i + 1)</span>
+                            <span class="it-art it-art-sm @Grad(t.Id)">
+                                @if (t.HasCover)
+                                {
+                                    <img src="@Url.Content("~/media/cover/" + t.Id)" alt="" loading="lazy" />
+                                }
+                            </span>
+                            <span class="it-row-text">
+                                <span class="it-row-title">@t.Title</span>
+                                <span class="it-row-sub">@t.ArtistName</span>
+                            </span>
+                            <span class="it-row-meta">@t.WeeklyPlays @Plural(t.WeeklyPlays, "play", "plays")</span>
+                        </button>
+                    }
+                </div>
+            </section>
+        }
+
+        @if (Model.Genres.Count > 0)
+        {
+            <section aria-labelledby="genresTitle">
+                <h2 class="it-h2" id="genresTitle">Genres</h2>
+                <div class="it-genre-grid">
+                    @for (var i = 0; i < Model.Genres.Count; i++)
+                    {
+                        var g = Model.Genres[i];
+                        <a class="it-genre @Grad(i + 3)" asp-controller="Tracks" asp-action="Index" asp-route-search="@g.Name">@g.Name</a>
+                    }
+                </div>
+            </section>
+        }
+
+        <section aria-labelledby="newTitle">
+            <h2 class="it-h2" id="newTitle">New from PUP artists</h2>
+            <div class="it-shelf-grid">
+                @foreach (var t in Model.NewTracks)
+                {
+                    <button type="button" class="it-shelf" data-play="@t.Id">
+                        <span class="it-art it-art-sq @Grad(t.Id)">
+                            @if (t.HasCover)
+                            {
+                                <img src="@Url.Content("~/media/cover/" + t.Id)" alt="" loading="lazy" />
+                            }
+                        </span>
+                        <span class="it-shelf-title">@t.Title</span>
+                        <span class="it-shelf-sub">@t.ArtistName</span>
+                    </button>
+                }
+            </div>
+        </section>
+
+        <div id="itPlayer"
+             data-start="@spot.Id"
+             data-audio-url="@Url.Content("~/media/audio/")"
+             data-play-url="@Url.Action("RecordPlay", "Tracks")"
+             data-like-url="@Url.Action("ToggleLike", "Tracks")">
+            @Html.AntiForgeryToken()
+            <ol id="itQueue" hidden>
+                @foreach (var t in queue)
+                {
+                    <li data-id="@t.Id" data-title="@t.Title" data-artist="@t.ArtistName" data-genre="@t.Genre"
+                        data-liked="@(t.LikedByMe ? "1" : "0")" data-likes="@t.LikeCount"></li>
+                }
+            </ol>
+
+            <div class="it-dock" role="region" aria-label="Player">
+                <div class="it-vinyl it-vinyl-sm" aria-hidden="true"></div>
+                <div class="it-dock-text">
+                    <div class="it-dock-title" id="itDockTitle">@spot.Title</div>
+                    <div class="it-dock-artist" id="itDockArtist">@spot.ArtistName</div>
+                </div>
+                <button type="button" class="it-icon-btn it-dock-extra" data-action="shuffle" aria-pressed="false" aria-label="Shuffle">
+                    <svg class="it-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"></path></svg>
+                </button>
+                <button type="button" class="it-icon-btn it-dock-extra" data-action="prev" aria-label="Previous track">
+                    <svg class="it-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 20 9 12l10-8zM5 19V5"></path></svg>
+                </button>
+                <button type="button" class="it-icon-btn it-dock-play" data-action="toggle" aria-label="Play">
+                    <svg class="it-icon it-fill it-ico-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z"></path></svg>
+                    <svg class="it-icon it-fill it-ico-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"></path></svg>
+                </button>
+                <button type="button" class="it-icon-btn it-dock-extra" data-action="next" aria-label="Next track">
+                    <svg class="it-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4l10 8-10 8zM19 5v14"></path></svg>
+                </button>
+                <div class="it-dock-seek it-dock-extra">
+                    <span id="itTime">0:00</span>
+                    <input type="range" class="it-seek" id="itSeek" min="0" max="100" step="0.1" value="0" aria-label="Seek" />
+                    <span id="itDur">0:00</span>
+                </div>
+                <button type="button" class="it-icon-btn it-fav" data-action="like" aria-pressed="false" aria-label="Add to favorites">
+                    <svg class="it-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8"></path></svg>
+                </button>
+            </div>
+        </div>
+    }
+    else if (signedIn)
+    {
+        <section class="it-card it-empty">
+            <h2 class="it-h2">No tracks yet</h2>
+            <p>Be the first to share original music.</p>
+            <a class="it-pill" asp-controller="Tracks" asp-action="Create">Upload a track</a>
+        </section>
+    }
+</div>

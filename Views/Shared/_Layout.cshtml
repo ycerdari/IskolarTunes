@@ -55,12 +55,15 @@
 
                 <form class="it-search ms-lg-auto" role="search" asp-area="" asp-controller="Tracks" asp-action="Index" method="get">
                     <svg class="it-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16M21 21l-4.3-4.3"></path></svg>
-                    <input type="search" name="searchString" aria-label="Search" placeholder="Search songs, artists, colleges" />
+                    <input type="search" name="search" aria-label="Search" placeholder="Search songs, artists" />
                 </form>
 
                 <div class="it-actions">
                     <a class="it-pill it-pill-ghost" asp-area="" asp-controller="Tracks" asp-action="Index">Browse catalogues</a>
-                    <button type="button" id="themeToggle" class="theme-toggle" aria-label="Toggle dark or light mode">🌙 Dark</button>
+                    <button type="button" id="themeToggle" class="it-icon-btn" aria-label="Switch to dark mode" title="Switch to dark mode">
+                        <svg class="it-icon it-theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8"></path></svg>
+                        <svg class="it-icon it-theme-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg>
+                    </button>
                     <partial name="_LoginPartial" />
                 </div>
             </div>
