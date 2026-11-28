@@ -1,27 +1,31 @@
 @page
 @model LoginWithRecoveryCodeModel
 @{
-    ViewData["Title"] = "Recovery code verification";
+    ViewData["Title"] = "Recovery code";
+    Layout = "_AuthLayout";
 }
 
-<h1>@ViewData["Title"]</h1>
-<hr />
-<p>
-    You have requested to log in with a recovery code. This login will not be remembered until you provide
-    an authenticator app code at log in or disable 2FA and log in again.
-</p>
-<div class="row">
-    <div class="col-md-4">
-        <form method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.RecoveryCode" class="form-control" autocomplete="off" placeholder="RecoveryCode" />
-                <label asp-for="Input.RecoveryCode" class="form-label"></label>
-                <span asp-validation-for="Input.RecoveryCode" class="text-danger"></span>
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-        </form>
-    </div>
+<div class="it-auth-card">
+    <a class="it-auth-brand" asp-area="" asp-controller="Home" asp-action="Index">
+        <span class="it-auth-logo" aria-hidden="true">I</span>
+        <span>IskolarTunes</span>
+    </a>
+
+    <h1 class="it-auth-title">Recovery code</h1>
+    <p class="it-auth-sub">Enter one of the recovery codes you saved when you set up two-factor authentication.</p>
+
+    <form method="post" asp-route-returnUrl="@Model.ReturnUrl" class="it-auth-form">
+        <div asp-validation-summary="ModelOnly" class="it-auth-alert" role="alert"></div>
+
+        <div class="it-auth-field">
+            <input asp-for="Input.RecoveryCode" class="it-auth-in" autocomplete="off" aria-label="Recovery code" placeholder="Recovery code" />
+            <span asp-validation-for="Input.RecoveryCode" class="it-auth-err"></span>
+        </div>
+
+        <button type="submit" class="it-auth-go">Verify</button>
+    </form>
+
+    <a class="it-auth-link" asp-area="Identity" asp-page="/Account/Login">Back to sign in</a>
 </div>
 
 @section Scripts {

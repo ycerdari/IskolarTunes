@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using IskolarTunes.Services;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +63,9 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 });
+
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("Smtp"));
+builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 
 var app = builder.Build();
 
