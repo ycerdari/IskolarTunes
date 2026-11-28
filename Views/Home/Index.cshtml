@@ -1,11 +1,13 @@
-﻿@using IskolarTunes.ViewModels
+﻿@using IskolarTunes.Models
+@using IskolarTunes.ViewModels
 @model HomeViewModel
 @{
     ViewData["Title"] = "Home";
     var signedIn = User.Identity?.IsAuthenticated == true;
     var spot = Model.Spotlight;
     var queue = Model.Queue;
-    var spotMeta = spot == null ? "" : spot.ArtistName + (string.IsNullOrWhiteSpace(spot.Genre) ? "" : " · " + spot.Genre);
+    var spotSub = spot == null ? "" : (!string.IsNullOrWhiteSpace(spot.College) ? spot.College : spot.Genre);
+    var spotMeta = spot == null ? "" : spot.ArtistName + (string.IsNullOrEmpty(spotSub) ? "" : " · " + spotSub);
     string Grad(int id) => "it-g" + (id % 5);
     string Plural(int n, string one, string many) => n == 1 ? one : many;
 }
@@ -17,7 +19,9 @@
             {
                 <div class="it-kicker">ISKOLARTUNES SPOTLIGHT</div>
                 <h1 id="heroTitle">@spot.Title</h1>
-                <p class="it-hero-sub">@spotMeta</p>
+                <p class="it-hero-sub">
+                    <a class="it-link-inline" asp-controller="Artists" asp-action="Details" asp-route-id="@spot.ArtistId">@spot.ArtistName</a>@(string.IsNullOrEmpty(spotSub) ? "" : " · " + spotSub)
+                </p>
                 <div class="it-hero-actions">
                     <button type="button" class="it-pill" data-play="@spot.Id">
                         <svg class="it-icon it-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4l14 8-14 8z"></path></svg>
@@ -85,6 +89,67 @@
             </div>
         </section>
 
+        <section id="browse" aria-labelledby="collegeTitle">
+            <h2 class="it-h2" id="collegeTitle">Browse by college</h2>
+            <div class="it-chips">
+                <a class="it-chip@(Model.College == null ? " on" : "")" asp-controller="Home" asp-action="Index"
+                   asp-route-genre="@Model.Genre" asp-fragment="shelf">All</a>
+                @foreach (var c in Colleges.Filters)
+                {
+                    <a class="it-chip@(Model.College == c ? " on" : "")" asp-controller="Home" asp-action="Index"
+                       asp-route-college="@c" asp-route-genre="@Model.Genre" asp-fragment="shelf">@c</a>
+                }
+            </div>
+        </section>
+
+        @if (Model.Genres.Count > 0)
+        {
+            <section aria-labelledby="genresTitle">
+                <h2 class="it-h2" id="genresTitle">Genres</h2>
+                <div class="it-genre-grid">
+                    @for (var i = 0; i < Model.Genres.Count; i++)
+                    {
+                        var g = Model.Genres[i];
+                        <a class="it-genre @Grad(i + 3)@(Model.Genre == g.Name ? " on" : "")" asp-controller="Home" asp-action="Index"
+                           asp-route-college="@Model.College" asp-route-genre="@(Model.Genre == g.Name ? null : g.Name)"
+                           asp-fragment="shelf">@g.Name</a>
+                    }
+                </div>
+            </section>
+        }
+
+        <section id="shelf" aria-labelledby="shelfTitle">
+            <div class="it-section-head">
+                <h2 class="it-h2" id="shelfTitle">@Model.ShelfTitle</h2>
+                <span class="it-shelf-count">@Model.Shelf.Count @Plural(Model.Shelf.Count, "song", "songs")</span>
+                @if (Model.Filtered)
+                {
+                    <a class="it-chip" asp-controller="Home" asp-action="Index" asp-fragment="browse">Clear filters</a>
+                }
+            </div>
+
+            @if (Model.Shelf.Count == 0)
+            {
+                <p class="it-muted">No songs match yet. Try another college or genre.</p>
+            }
+
+            <div class="it-shelf-grid">
+                @foreach (var t in Model.Shelf)
+                {
+                    <button type="button" class="it-shelf" data-play="@t.Id">
+                        <span class="it-art it-art-sq @Grad(t.Id)">
+                            @if (t.HasCover)
+                            {
+                                <img src="@Url.Content("~/media/cover/" + t.Id)" alt="" loading="lazy" />
+                            }
+                        </span>
+                        <span class="it-shelf-title">@t.Title</span>
+                        <span class="it-shelf-sub">@t.ArtistName@(string.IsNullOrWhiteSpace(t.College) ? "" : " · " + t.College)</span>
+                    </button>
+                }
+            </div>
+        </section>
+
         @if (Model.Trending.Count > 0)
         {
             <section aria-labelledby="trendingTitle">
@@ -114,39 +179,6 @@
                 </div>
             </section>
         }
-
-        @if (Model.Genres.Count > 0)
-        {
-            <section aria-labelledby="genresTitle">
-                <h2 class="it-h2" id="genresTitle">Genres</h2>
-                <div class="it-genre-grid">
-                    @for (var i = 0; i < Model.Genres.Count; i++)
-                    {
-                        var g = Model.Genres[i];
-                        <a class="it-genre @Grad(i + 3)" asp-controller="Tracks" asp-action="Index" asp-route-search="@g.Name">@g.Name</a>
-                    }
-                </div>
-            </section>
-        }
-
-        <section aria-labelledby="newTitle">
-            <h2 class="it-h2" id="newTitle">New from PUP artists</h2>
-            <div class="it-shelf-grid">
-                @foreach (var t in Model.NewTracks)
-                {
-                    <button type="button" class="it-shelf" data-play="@t.Id">
-                        <span class="it-art it-art-sq @Grad(t.Id)">
-                            @if (t.HasCover)
-                            {
-                                <img src="@Url.Content("~/media/cover/" + t.Id)" alt="" loading="lazy" />
-                            }
-                        </span>
-                        <span class="it-shelf-title">@t.Title</span>
-                        <span class="it-shelf-sub">@t.ArtistName</span>
-                    </button>
-                }
-            </div>
-        </section>
 
         <div id="itPlayer"
              data-start="@spot.Id"

@@ -16,7 +16,7 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261126144342_AddLikesAndPlays";
+    public override string LastMigrationId => "20261128131613_AddCollegeToUser";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -34,6 +34,10 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
 
                 b.Property<int>("AccessFailedCount")
                     .HasColumnType("int");
+
+                b.Property<string>("College")
+                    .HasMaxLength(10)
+                    .HasColumnType("nvarchar(10)");
 
                 b.Property<string>("ConcurrencyStamp")
                     .IsConcurrencyToken()

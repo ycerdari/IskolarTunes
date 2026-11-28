@@ -1,0 +1,39 @@
+﻿@page
+@using IskolarTunes.Models
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model ProfileModel
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<h2 class="it-h2">Profile</h2>
+
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div class="alert alert-success" role="status">@Model.StatusMessage</div>
+}
+
+<form id="profile-form" method="post" class="it-auth-form it-profile-form">
+    <div asp-validation-summary="ModelOnly" class="it-auth-alert" role="alert"></div>
+
+    <div class="it-auth-field">
+        <label asp-for="Input.FullName" class="it-field-label"></label>
+        <input asp-for="Input.FullName" class="it-auth-in" autocomplete="name" />
+        <span asp-validation-for="Input.FullName" class="it-auth-err"></span>
+    </div>
+
+    <div class="it-auth-field">
+        <label asp-for="Input.College" class="it-field-label"></label>
+        <select asp-for="Input.College" class="it-auth-in" asp-items="@(Colleges.Choices.Select(c => new SelectListItem(c, c)))">
+            <option value="">Not set</option>
+        </select>
+        <span class="it-field-hint">Used for Browse by college.</span>
+        <span asp-validation-for="Input.College" class="it-auth-err"></span>
+    </div>
+
+    <button type="submit" class="it-pill it-profile-save">Save</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

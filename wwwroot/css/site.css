@@ -1424,3 +1424,112 @@ body.it-is-playing .it-ico-play {
     font-size: 20px;
     padding-left: calc(20px + .5em);
 }
+
+/* ---- College chips (Browse by college) ---- */
+.it-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.it-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 18px;
+    border-radius: 99px;
+    background: var(--it-hl);
+    color: var(--it-tx);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+    .it-chip:hover {
+        color: var(--it-tx);
+        filter: brightness(.96);
+    }
+
+    .it-chip.on {
+        background: var(--it-pb);
+        color: var(--it-pt);
+    }
+
+.it-genre.on {
+    outline: 3px solid var(--it-tx);
+    outline-offset: -3px;
+}
+
+.it-shelf-count {
+    flex: 1;
+    color: var(--it-mu);
+    font-size: 13px;
+}
+
+.it-muted {
+    color: var(--it-mu);
+    padding: 12px 0;
+}
+
+.it-link-inline {
+    color: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+    .it-link-inline:hover {
+        color: var(--it-ac);
+    }
+
+/* ---- Artist page ---- */
+a.it-row {
+    text-decoration: none;
+}
+
+.it-artist-hero {
+    justify-content: flex-start;
+    gap: 28px;
+}
+
+.it-artist-avatar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #800000, #F2B705);
+    color: #fff;
+    font-size: 48px;
+    font-weight: 800;
+}
+
+@media (max-width: 767.98px) {
+    .it-artist-hero {
+        flex-direction: column;
+    }
+}
+
+/* ---- Profile form ---- */
+.it-field-label {
+    padding: 0 6px;
+    color: var(--it-mu);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.it-field-hint {
+    padding: 0 6px;
+    color: var(--it-mu);
+    font-size: 12px;
+}
+
+.it-profile-form {
+    max-width: 420px;
+}
+
+.it-profile-save {
+    align-self: flex-start;
+    border: 0;
+}

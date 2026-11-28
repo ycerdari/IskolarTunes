@@ -17,29 +17,48 @@ namespace IskolarTunes.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? college, string? genre)
         {
             var vm = new HomeViewModel();
 
             // Guests only see the hero; track data stays behind login.
             if (User.Identity?.IsAuthenticated != true) return View(vm);
 
+            if (college != null && !Colleges.Filters.Contains(college)) college = null;
+            genre = string.IsNullOrWhiteSpace(genre) ? null : genre.Trim();
+            if (genre != null && genre.Length > 100) genre = null;
+            vm.College = college;
+            vm.Genre = genre;
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var since = DateTime.UtcNow.AddDays(-7);
+            var all = _context.Tracks.AsNoTracking();
 
-            vm.NewTracks = await Project(
-                    _context.Tracks.AsNoTracking().OrderByDescending(t => t.UploadedAt).Take(10),
-                    userId, since)
+            vm.Latest = await Project(all.OrderByDescending(t => t.UploadedAt).Take(10), userId, since)
                 .ToListAsync();
 
-            vm.Trending = await Project(_context.Tracks.AsNoTracking(), userId, since)
+            if (vm.Filtered)
+            {
+                var shelf = all;
+                if (college != null) shelf = shelf.Where(t => t.Uploader!.College == college);
+                if (genre != null) shelf = shelf.Where(t => t.Genre == genre);
+
+                vm.Shelf = await Project(shelf.OrderByDescending(t => t.UploadedAt).Take(10), userId, since)
+                    .ToListAsync();
+            }
+            else
+            {
+                vm.Shelf = vm.Latest;
+            }
+
+            vm.Trending = await Project(all, userId, since)
                 .Where(x => x.WeeklyPlays > 0)
                 .OrderByDescending(x => x.WeeklyPlays)
                 .ThenByDescending(x => x.LikeCount)
                 .Take(5)
                 .ToListAsync();
 
-            vm.Genres = await _context.Tracks.AsNoTracking()
+            vm.Genres = await all
                 .Where(t => t.Genre != null && t.Genre != "")
                 .GroupBy(t => t.Genre!)
                 .Select(g => new HomeGenreViewModel { Name = g.Key, Count = g.Count() })
@@ -56,7 +75,9 @@ namespace IskolarTunes.Controllers
             {
                 Id = t.Id,
                 Title = t.Title,
+                ArtistId = t.UploaderId,
                 ArtistName = t.Uploader!.FullName,
+                College = t.Uploader!.College,
                 Genre = t.Genre,
                 HasCover = t.CoverImagePath != null,
                 WeeklyPlays = t.Plays.Count(p => p.PlayedAt >= since),
