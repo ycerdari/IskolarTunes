@@ -27,4 +27,9 @@ public class Track
     public ApplicationUser? Uploader { get; set; }
 
     public ICollection<PlaylistTrack> PlaylistTracks { get; set; } = new List<PlaylistTrack>();
+
+    public int PlayCount { get; set; } = 0;
+
+    public ICollection<TrackLike> Likes { get; set; } = new List<TrackLike>();
+    public ICollection<TrackPlay> Plays { get; set; } = new List<TrackPlay>();
 }

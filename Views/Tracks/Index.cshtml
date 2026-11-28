@@ -5,6 +5,9 @@
     var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
+<link rel="stylesheet" href="~/css/likes.css" asp-append-version="true" />
+@Html.AntiForgeryToken()
+
 @if (TempData["Success"] != null)
 {
     <div class="alert alert-success">@TempData["Success"]</div>
@@ -40,6 +43,7 @@ else
                     <th>Artist</th>
                     <th>Genre</th>
                     <th>Uploaded</th>
+                    <th>Likes</th>
                     <th>Play</th>
                     <th></th>
                 </tr>
@@ -58,7 +62,17 @@ else
                         <td>@item.Uploader?.FullName</td>
                         <td>@item.Genre</td>
                         <td>@item.UploadedAt.ToString("MMM d, yyyy")</td>
-                        <td><audio controls preload="none" src="@Url.Action("Audio", "Media", new { id = item.Id })" style="max-width:220px"></audio></td>
+                        <td>
+                            <div class="tt">
+                                <partial name="_LikeButton" model="@(new IskolarTunes.ViewModels.LikeButtonViewModel
+                                         {
+                                             TrackId = item.Id,
+                                             Liked = item.Likes.Any(l => l.UserId == currentUserId),
+                                             Count = item.Likes.Count
+                                         })" />
+                            </div>
+                        </td>
+                        <td><audio controls preload="none" data-track-id="@item.Id" src="@Url.Action("Audio", "Media", new { id = item.Id })" style="max-width:220px"></audio></td>
                         <td class="text-nowrap">
                             <a asp-action="Details" asp-route-id="@item.Id">Details</a>
                             @if (item.UploaderId == currentUserId)
@@ -74,4 +88,22 @@ else
             </tbody>
         </table>
     </div>
+}
+
+@section Scripts {
+    <script src="~/js/likes.js" asp-append-version="true"></script>
+    <script>
+        (() => {
+            // one play counted per track per page visit; "play" doesn't bubble, so listen in capture mode
+            const counted = new Set();
+            document.addEventListener('play', (e) => {
+                if (!(e.target instanceof HTMLAudioElement)) return;
+                const id = e.target.dataset.trackId;
+                if (id && !counted.has(id)) {
+                    counted.add(id);
+                    recordPlay(id);
+                }
+            }, true);
+        })();
+    </script>
 }

@@ -16,7 +16,7 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     // If you encounter a merge conflict in the line below, it means you need to
     // discard one of the migration branches and recreate its migrations on top of
     // the other branch. See https://aka.ms/efcore-docs-migrations-conflicts for more info.
-    public override string LastMigrationId => "20261125051451_AddTracksAndPlaylists";
+    public override string LastMigrationId => "20261126144342_AddLikesAndPlays";
 
     protected override void BuildModel(ModelBuilder modelBuilder)
     {
@@ -177,6 +177,9 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                     .HasMaxLength(100)
                     .HasColumnType("nvarchar(100)");
 
+                b.Property<int>("PlayCount")
+                    .HasColumnType("int");
+
                 b.Property<string>("Title")
                     .IsRequired()
                     .HasMaxLength(150)
@@ -194,6 +197,61 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                 b.HasIndex("UploaderId");
 
                 b.ToTable("Tracks");
+            });
+
+        modelBuilder.Entity("IskolarTunes.Models.TrackLike", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
+
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(id);
+
+                b.Property<DateTime>("LikedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<int>("TrackId")
+                    .HasColumnType("int");
+
+                b.Property<string>("UserId")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("TrackId");
+
+                b.HasIndex("UserId", "TrackId")
+                    .IsUnique();
+
+                b.ToTable("TrackLikes");
+            });
+
+        modelBuilder.Entity("IskolarTunes.Models.TrackPlay", b =>
+            {
+                var id = b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
+
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(id);
+
+                b.Property<DateTime>("PlayedAt")
+                    .HasColumnType("datetime2");
+
+                b.Property<int>("TrackId")
+                    .HasColumnType("int");
+
+                b.Property<string>("UserId")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("UserId");
+
+                b.HasIndex("TrackId", "PlayedAt");
+
+                b.ToTable("TrackPlays");
             });
 
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -374,6 +432,44 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                 b.Navigation("Uploader");
             });
 
+        modelBuilder.Entity("IskolarTunes.Models.TrackLike", b =>
+            {
+                b.HasOne("IskolarTunes.Models.Track", "Track")
+                    .WithMany("Likes")
+                    .HasForeignKey("TrackId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.HasOne("IskolarTunes.Models.ApplicationUser", "User")
+                    .WithMany()
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.NoAction)
+                    .IsRequired();
+
+                b.Navigation("Track");
+
+                b.Navigation("User");
+            });
+
+        modelBuilder.Entity("IskolarTunes.Models.TrackPlay", b =>
+            {
+                b.HasOne("IskolarTunes.Models.Track", "Track")
+                    .WithMany("Plays")
+                    .HasForeignKey("TrackId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+
+                b.HasOne("IskolarTunes.Models.ApplicationUser", "User")
+                    .WithMany()
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.NoAction)
+                    .IsRequired();
+
+                b.Navigation("Track");
+
+                b.Navigation("User");
+            });
+
         modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
             {
                 b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -432,7 +528,11 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
 
         modelBuilder.Entity("IskolarTunes.Models.Track", b =>
             {
+                b.Navigation("Likes");
+
                 b.Navigation("PlaylistTracks");
+
+                b.Navigation("Plays");
             });
 #pragma warning restore 612, 618
     }
