@@ -1,0 +1,64 @@
+﻿@using IskolarTunes.ViewModels
+@model ArtistViewModel
+@{
+    ViewData["Title"] = Model.Name;
+    var initial = string.IsNullOrWhiteSpace(Model.Name) ? "?" : char.ToUpperInvariant(Model.Name.Trim()[0]).ToString();
+    string Grad(int id) => "it-g" + (id % 5);
+    string Plural(int n, string one, string many) => n == 1 ? one : many;
+    var n = Model.Tracks.Count;
+}
+
+<div class="it-stack">
+    <section class="it-hero it-artist-hero" aria-labelledby="artistName">
+        <div class="it-artist-avatar" aria-hidden="true">@initial</div>
+        <div class="it-hero-copy">
+            <div class="it-kicker">ARTIST@(string.IsNullOrWhiteSpace(Model.College) ? "" : " · " + Model.College)</div>
+            <h1 id="artistName">@Model.Name</h1>
+            <p class="it-hero-sub">@n @Plural(n, "track", "tracks") · @Model.TotalPlays @Plural(Model.TotalPlays, "play", "plays") · @Model.TotalLikes @Plural(Model.TotalLikes, "like", "likes")</p>
+            <div class="it-hero-actions">
+                @if (Model.IsMe)
+                {
+                    <a class="it-pill" asp-controller="Tracks" asp-action="Create">Upload a track</a>
+                    <a class="it-pill it-pill-ghost" asp-area="Identity" asp-page="/Account/Manage/Profile">Edit profile</a>
+                }
+                else
+                {
+                    <a class="it-pill it-pill-ghost" asp-controller="Home" asp-action="Index">Back to home</a>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section aria-labelledby="artistTracks">
+        <h2 class="it-h2" id="artistTracks">Tracks</h2>
+        @if (n == 0)
+        {
+            <div class="it-card it-empty">
+                <p>No tracks uploaded yet.</p>
+            </div>
+        }
+        else
+        {
+            <div class="it-card it-list">
+                @for (var i = 0; i < n; i++)
+                {
+                    var t = Model.Tracks[i];
+                    <a class="it-row" asp-controller="Tracks" asp-action="Details" asp-route-id="@t.Id">
+                        <span class="it-rank">@(i + 1)</span>
+                        <span class="it-art it-art-sm @Grad(t.Id)">
+                            @if (t.HasCover)
+                            {
+                                <img src="@Url.Content("~/media/cover/" + t.Id)" alt="" loading="lazy" />
+                            }
+                        </span>
+                        <span class="it-row-text">
+                            <span class="it-row-title">@t.Title</span>
+                            <span class="it-row-sub">@(string.IsNullOrWhiteSpace(t.Genre) ? "No genre" : t.Genre)</span>
+                        </span>
+                        <span class="it-row-meta">@t.PlayCount @Plural(t.PlayCount, "play", "plays") · @t.LikeCount @Plural(t.LikeCount, "like", "likes")</span>
+                    </a>
+                }
+            </div>
+        }
+    </section>
+</div>
